@@ -60,3 +60,5 @@ button.addEventListener("click", async function () {
   // First continue button
   createContinueButton(container, text);
 });
+
+document.getElementById('storySection').style.marginTop = `${document.getElementById('title').offsetHeight}px`
