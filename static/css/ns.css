@@ -150,12 +150,13 @@ html {
     text-align: left;
 }
 
-textarea {
+textarea, input {
     width: 100%;
     background-color: rgba(0,0,0, 0.5);
     border: 2px dimgray solid;
     padding: 5px;
     border-radius: 5px;
+    font-family: monospace;
     resize: none;
     color:white;
     font-size: 1.5vh;

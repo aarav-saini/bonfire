@@ -1,36 +1,60 @@
 const button = document.getElementById("generate");
 const input = document.getElementById("storyInput");
+const apiKeyInput = document.querySelector('input[type="password"]');
 
-const startingStatement = input.value;
-
-async function sendToAI(statement, prompt) {
+async function sendToAI(statement, prompt, apiKey) {
   let realPrompt;
   if (!prompt) {
-    realPrompt = `You are an AI which has the objective to create a story out of the given statement. Inspire your story from the players of gartic phone, For example, In gartic phone, the story eventually veers offcourse. Make it, like, no punctuation at all, and make it like a human is talking. Use short forms, but don't capitalize them. Keep in mind, only output 1 line at a time. Do not be afraid to use the statement to the fullest extent, just make sure it ends up with an absolutely absurd story. The starting statement was: \n"${startingStatement}".\nThe current statement is: \n"${statement}".\n Do NOT repeat anything of this statement, only continue forward from this. Build on what you have, and follow all the instructions carefully.`;
+    realPrompt = `You are an AI which has the objective to create a story out of the given statement. Inspire your story from the players of gartic phone, For example, In gartic phone, the story eventually veers offcourse. Make it, like, no punctuation at all, and make it like a human is talking. Use short forms, but don't capitalize them. Keep in mind, only output 1 line at a time. Do not be afraid to use the statement to the fullest extent, just make sure it ends up with an absolutely absurd story. The starting statement was: \n"${input.value}".\nThe current statement is: \n"${statement}".\n Do NOT repeat anything of this statement, only continue forward from this. Build on what you have, and follow all the instructions carefully.`;
   } else {
     realPrompt = prompt;
   }
-  return fetch("/nsData", {
-    method: "POST",
-    body: JSON.stringify({ statement: realPrompt }),
-    headers: { "Content-type": "application/json; charset=UTF-8" },
-  }).then((response) => response.json());
+
+  try {
+    const response = await fetch("/nsData", {
+      method: "POST",
+      body: JSON.stringify({ statement: realPrompt, apiKey }),
+      headers: { "Content-type": "application/json; charset=UTF-8" },
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      throw new Error(data.error || "Unknown server error");
+    }
+
+    return data;
+  } catch (error) {
+    return { error: error.message };
+  }
 }
 
-// ---- Function for continuing story ----
 function createContinueButton(container, prevText) {
   const contBtn = document.createElement("button");
   contBtn.textContent = "Continue";
+
   contBtn.addEventListener("click", async () => {
     contBtn.remove();
 
-    const { text: nextText } = await sendToAI(prevText);
+    const { text: nextText, error } = await sendToAI(
+      prevText,
+      null,
+      apiKeyInput.value.trim(),
+    );
+
+    if (error) {
+      const errMsg = document.createElement("div");
+      errMsg.className = "story-error";
+      errMsg.textContent = `Error: ${error}`;
+      container.appendChild(errMsg);
+      return;
+    }
+
     const nextMsg = document.createElement("div");
     nextMsg.className = "story-message";
     nextMsg.textContent = nextText;
     container.appendChild(nextMsg);
 
-    // Add another continue button for the new text
     createContinueButton(container, nextText);
   });
 
@@ -39,26 +63,36 @@ function createContinueButton(container, prevText) {
 
 button.addEventListener("click", async function () {
   const promptText = input.value;
+  const userApiKey = apiKeyInput.value.trim();
+
   const initialPrefix = `You are an AI which has the objective to create a story out of the given statement. Inspire your story from the players of gartic phone, For example, In gartic phone, the story eventually veers offcourse. Make it, like, no punctuation at all, and make it like a human is talking. Use short forms, but don't capitalize them. Keep in mind, only output 1 line at a time. Do not be afraid to use the statement to the fullest extent, just make sure it ends up with an absolutely absurd story. The starting statement is: ${promptText}\n Do NOT repeat anything of this statement, only continue forward from this. Build on what you have, and follow all the instructions carefully.`;
 
   input.remove();
-  document.getElementById("generate").remove();
+  button.remove();
 
   const container = document.getElementById("story");
   const loader = document.createElement("p");
   loader.textContent = "Thinking...";
   container.appendChild(loader);
 
-  const { text } = await sendToAI(promptText, initialPrefix);
+  const { text, error } = await sendToAI(promptText, initialPrefix, userApiKey);
   loader.remove();
+
+  if (error) {
+    const errMsg = document.createElement("div");
+    errMsg.className = "story-error";
+    errMsg.textContent = `Error: ${error}`;
+    container.appendChild(errMsg);
+    return;
+  }
 
   const msg = document.createElement("div");
   msg.className = "story-message";
   msg.textContent = text;
   container.appendChild(msg);
 
-  // First continue button
   createContinueButton(container, text);
 });
 
-document.getElementById('storySection').style.marginTop = `${document.getElementById('title').offsetHeight}px`
+document.getElementById("storySection").style.marginTop =
+  `${document.getElementById("title").offsetHeight}px`;
