@@ -11,7 +11,7 @@ import { fileURLToPath } from "node:url";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const app = express();
-const PORT = 3000;
+const port = process.env.PORT || 3000;
 app.use(express.static(path.join(__dirname, "static")));
 app.use(express.json());
 // Without middleware
