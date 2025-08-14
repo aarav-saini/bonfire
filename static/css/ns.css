@@ -158,6 +158,7 @@ textarea {
     border-radius: 5px;
     resize: none;
     color:white;
+    font-size: 1.5vh;
 }
 
 .story-message {
@@ -195,4 +196,21 @@ textarea {
 @keyframes fadeIn {
     from { opacity: 0; transform: translateY(5px); }
     to { opacity: 1; transform: translateY(0); }
+}
+
+button {
+    border-radius: 5px;
+    padding:10px;
+    font-size: 1.5vh;
+    background-color: rgba(0,0,0,0.5);
+    color:white;
+    border: 2px dimgray solid;
+    font-family: monospace;
+}
+
+#title {
+    position: fixed;
+    backdrop-filter: blur(5px);
+    -webkit-backdrop-filter: blur(5px);
+    z-index: 5;
 }
